@@ -7,9 +7,7 @@
 
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Rotations;
-
-import com.ctre.phoenix6.hardware.CANcoder;
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -32,7 +30,7 @@ public class SwerveModule {
 
   private SparkMax m_steerMotor;
   private SparkMax m_driveMotor;
-  private CANcoder m_steerAbsEncoder;
+  private AbsoluteEncoder m_steerAbsEncoder;
 
   private RelativeEncoder m_steerEncoder;
   private RelativeEncoder m_driveEncoder;
@@ -62,18 +60,17 @@ public class SwerveModule {
     m_steerController = m_steerMotor.getClosedLoopController();
     m_driveController = m_driveMotor.getClosedLoopController();
 
-    m_steerAbsEncoder = new CANcoder(constants.steerEncoderId);
+    m_steerAbsEncoder = m_steerMotor.getAbsoluteEncoder();
 
     m_modulePosition = new SwerveModulePosition();
     m_moduleState = new SwerveModuleState();
 
     DeviceConfigurator.configureSparkMaxSteerMotor(m_steerMotor);
     DeviceConfigurator.configureSparkMaxDriveMotor(m_driveMotor);
-    DeviceConfigurator.configureCANcoder(m_steerAbsEncoder, m_constants.offset);
   }
 
   public void resetAngleToAbsolute() {
-    m_steerEncoder.setPosition(m_steerAbsEncoder.getAbsolutePosition().getValue().abs(Rotations) * 360);
+    m_steerEncoder.setPosition((m_steerAbsEncoder.getPosition() * 360));
   }
 
   public Rotation2d getModuleHeading() {
@@ -81,7 +78,7 @@ public class SwerveModule {
   }
 
   public double getAbsolutePosition() {
-    return m_steerAbsEncoder.getAbsolutePosition().getValue().abs(Rotations) * 360;
+    return m_steerAbsEncoder.getPosition();
   }
 
   public SwerveModulePosition getModulePosition() {
