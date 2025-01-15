@@ -9,76 +9,74 @@ package frc.robot.util;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkFlex;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkPIDController;
+import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
 import frc.robot.Constants.DriveConstants;
 
 public class DeviceConfigurator {
-  public static void configureSparkMaxSteerMotor(CANSparkMax motor) {
-    RelativeEncoder encoder = motor.getEncoder();
-    SparkPIDController controller = motor.getPIDController();
+  public static void configureSparkMaxSteerMotor(SparkMax motor) {
+    SparkMaxConfig config = new SparkMaxConfig();
 
-    motor.restoreFactoryDefaults();
+    config.inverted(true)
+          .smartCurrentLimit(40)
+          .idleMode(IdleMode.kBrake);
 
-    motor.setInverted(true);
-    motor.setSmartCurrentLimit(40);
-    motor.setIdleMode(IdleMode.kBrake);
+    config.encoder.positionConversionFactor(DriveConstants.kTurnRotationsToDegrees);
 
-    encoder.setPositionConversionFactor(DriveConstants.kTurnRotationsToDegrees);
+    config.closedLoop
+          .p(DriveConstants.turnkp)
+          .i(DriveConstants.turnki)
+          .d(DriveConstants.turnkd)
+          .velocityFF(DriveConstants.turnkff);
 
-    encoder.setPosition(0);
-
-    controller.setP(DriveConstants.turnkp);
-    controller.setI(DriveConstants.turnki);
-    controller.setD(DriveConstants.turnkd);
-    controller.setFF(DriveConstants.turnkff);
+    motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    motor.getEncoder().setPosition(0);
   }
 
-  public static void configureSparkMaxDriveMotor(CANSparkMax motor) {
-    RelativeEncoder encoder = motor.getEncoder();
-    SparkPIDController controller = motor.getPIDController();
+  public static void configureSparkMaxDriveMotor(SparkMax motor) {
+    SparkMaxConfig config = new SparkMaxConfig();
 
-    motor.restoreFactoryDefaults();
+    config.inverted(true)
+          .smartCurrentLimit(80)
+          .idleMode(IdleMode.kBrake)
+          .openLoopRampRate(DriveConstants.driverampRate);
 
-    motor.setInverted(true);
-    motor.setSmartCurrentLimit(80);
-    motor.setIdleMode(IdleMode.kBrake);
-    motor.setOpenLoopRampRate(DriveConstants.driverampRate);
+    config.encoder.positionConversionFactor(DriveConstants.kDriveRevToMeters)
+                  .velocityConversionFactor(DriveConstants.kDriveRpmToMetersPerSecond);
 
-    encoder.setPositionConversionFactor(DriveConstants.kDriveRevToMeters);
-    encoder.setVelocityConversionFactor(DriveConstants.kDriveRpmToMetersPerSecond);
-    encoder.setPosition(0);
+    config.closedLoop.p(DriveConstants.drivekp)
+                     .i(DriveConstants.driveki)
+                     .d(DriveConstants.drivekd)
+                     .velocityFF(DriveConstants.drivekff);
 
-    controller.setP(DriveConstants.drivekp);
-    controller.setI(DriveConstants.driveki);
-    controller.setD(DriveConstants.drivekd);
-    controller.setFF(DriveConstants.drivekff);
+    motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    motor.getEncoder().setPosition(0);
   }
 
-  public static void configureSparkFlexDriveMotor(CANSparkFlex motor) {
-    RelativeEncoder encoder = motor.getEncoder();
-    SparkPIDController controller = motor.getPIDController();
+  public static void configureSparkFlexDriveMotor(SparkFlex motor) {
+    SparkFlexConfig config = new SparkFlexConfig();
 
-    motor.restoreFactoryDefaults();
+    config.inverted(true)
+          .smartCurrentLimit(80)
+          .idleMode(IdleMode.kBrake)
+          .openLoopRampRate(DriveConstants.driverampRate);
 
-    motor.setInverted(true);
-    motor.setSmartCurrentLimit(80);
-    motor.setIdleMode(IdleMode.kBrake);
-    motor.setOpenLoopRampRate(DriveConstants.driverampRate);
+    config.encoder.positionConversionFactor(DriveConstants.kDriveRevToMeters)
+                  .velocityConversionFactor(DriveConstants.kDriveRpmToMetersPerSecond);
 
-    encoder.setPositionConversionFactor(DriveConstants.kDriveRevToMeters);
-    encoder.setVelocityConversionFactor(DriveConstants.kDriveRpmToMetersPerSecond);
-    encoder.setPosition(0);
+    config.closedLoop.p(DriveConstants.drivekp)
+                     .i(DriveConstants.driveki)
+                     .d(DriveConstants.drivekd)
+                     .velocityFF(DriveConstants.drivekff);
 
-    controller.setP(DriveConstants.drivekp);
-    controller.setI(DriveConstants.driveki);
-    controller.setD(DriveConstants.drivekd);
-    controller.setFF(DriveConstants.drivekff);
+    motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    motor.getEncoder().setPosition(0);
   }
 
   public static void configureCANcoder(CANcoder encoder, double offset) {
@@ -86,7 +84,7 @@ public class DeviceConfigurator {
 
     encoder.getConfigurator().apply(configuration);
 
-    configuration.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+    configuration.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1;
     configuration.MagnetSensor.MagnetOffset = offset;
     configuration.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
 

@@ -7,18 +7,18 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Rotations;
+
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.revrobotics.CANSparkBase.ControlType;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkPIDController;
+import com.revrobotics.spark.SparkClosedLoopController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Units;
-import edu.wpi.first.units.Voltage;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
@@ -30,15 +30,15 @@ public class SwerveModule {
 
   SwerveModuleConstants m_constants;
 
-  private CANSparkMax m_steerMotor;
-  private CANSparkMax m_driveMotor;
+  private SparkMax m_steerMotor;
+  private SparkMax m_driveMotor;
   private CANcoder m_steerAbsEncoder;
 
   private RelativeEncoder m_steerEncoder;
   private RelativeEncoder m_driveEncoder;
 
-  private SparkPIDController m_steerController;
-  private SparkPIDController m_driveController;
+  private SparkClosedLoopController m_steerController;
+  private SparkClosedLoopController m_driveController;
 
   private SwerveModulePosition m_modulePosition;
   private SwerveModuleState m_moduleState;
@@ -53,14 +53,14 @@ public class SwerveModule {
   public SwerveModule(SwerveModuleConstants constants) {
     m_constants = constants;
 
-    m_steerMotor = new CANSparkMax(constants.steerId, MotorType.kBrushless);
-    m_driveMotor = new CANSparkMax(constants.driveId, MotorType.kBrushless);
+    m_steerMotor = new SparkMax(constants.steerId, MotorType.kBrushless);
+    m_driveMotor = new SparkMax(constants.driveId, MotorType.kBrushless);
 
     m_steerEncoder = m_steerMotor.getEncoder();
     m_driveEncoder = m_driveMotor.getEncoder();
 
-    m_steerController = m_steerMotor.getPIDController();
-    m_driveController = m_driveMotor.getPIDController();
+    m_steerController = m_steerMotor.getClosedLoopController();
+    m_driveController = m_driveMotor.getClosedLoopController();
 
     m_steerAbsEncoder = new CANcoder(constants.steerEncoderId);
 
@@ -73,12 +73,7 @@ public class SwerveModule {
   }
 
   public void resetAngleToAbsolute() {
-    m_steerEncoder.setPosition((m_steerAbsEncoder.getAbsolutePosition().getValue() * 360));
-  }
-
-  public void burnFlash() {
-    m_driveMotor.burnFlash();
-    m_steerMotor.burnFlash();
+    m_steerEncoder.setPosition(m_steerAbsEncoder.getAbsolutePosition().getValue().abs(Rotations) * 360);
   }
 
   public Rotation2d getModuleHeading() {
@@ -86,7 +81,7 @@ public class SwerveModule {
   }
 
   public double getAbsolutePosition() {
-    return (m_steerAbsEncoder.getAbsolutePosition().getValue() * 360);
+    return m_steerAbsEncoder.getAbsolutePosition().getValue().abs(Rotations) * 360;
   }
 
   public SwerveModulePosition getModulePosition() {
@@ -111,9 +106,9 @@ public class SwerveModule {
     return m_moduleState;
   }
 
-  public void runVolts(Measure<Voltage> volts, double position) {
+  public void runVolts(Voltage volts, double position) {
     m_steerController.setReference(position, ControlType.kPosition);
-    m_driveMotor.setVoltage(volts.in(Units.Volts));
+    m_driveMotor.setVoltage(volts);
   }
 
   public void setSwerveModuleState(SwerveModuleState moduleState, boolean isOpenLoop) {

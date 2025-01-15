@@ -12,7 +12,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PS5Controller.Axis;
-import frc.lib.team6328.swerve.ModuleLimits;
 import frc.robot.util.SwerveModuleConstants;
 
 public final class Constants {
@@ -82,10 +81,6 @@ public final class Constants {
     public static final double kDriveRevToMeters = ((kWheelDiameter * Math.PI) / kDriveGearRatio);
     public static final double kDriveRpmToMetersPerSecond = kDriveRevToMeters / 60.0;
     public static final double kTurnRotationsToDegrees = 360.0 / kTurnGearRatio;
-
-    public static final ModuleLimits kModuleLimits =
-        new ModuleLimits(
-            Units.feetToMeters(16.25), Units.feetToMeters(125.0), Units.degreesToRadians(1080.0));
 
     public static double drivekp = 0.15751;
     public static double driveki = 0.0;

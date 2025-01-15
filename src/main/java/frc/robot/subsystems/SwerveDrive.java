@@ -7,11 +7,15 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Rotations;
+
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.ReplanningConfig;
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -21,9 +25,9 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Voltage;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
@@ -35,13 +39,13 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.lib.team6328.swerve.SwerveSetpoint;
-import frc.lib.team6328.swerve.SwerveSetpointGenerator;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.RobotContainer;
 import frc.robot.util.Utils;
+
 import java.util.function.BooleanSupplier;
+
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveDrive extends SubsystemBase {
@@ -54,12 +58,10 @@ public class SwerveDrive extends SubsystemBase {
 
   private SwerveDriveKinematics m_kinematics;
   private SwerveDrivePoseEstimator m_poseEstimator;
-  private SwerveSetpointGenerator m_setpointGenerator;
 
   private SwerveModuleState[] m_desiredModuleStates;
   private SwerveModulePosition[] m_modulePositions;
   private ChassisSpeeds m_chassisSpeeds;
-  private SwerveSetpoint m_optimizedSetpoint;
 
   private DriveMode m_driveMode = DriveMode.TELEOP;
 
@@ -100,18 +102,10 @@ public class SwerveDrive extends SubsystemBase {
           new SwerveModulePosition()
         };
 
-    m_setpointGenerator =
-        SwerveSetpointGenerator.builder()
-            .kinematics(m_kinematics)
-            .moduleLocations(DriveConstants.kModuleTranslations)
-            .build();
-
-    m_optimizedSetpoint = new SwerveSetpoint(new ChassisSpeeds(), m_desiredModuleStates);
     m_chassisSpeeds = new ChassisSpeeds();
 
     Timer.delay(1.0);
     resetModulesToAbsolute();
-    burnModuleFlashes();
 
     m_poseEstimator =
         new SwerveDrivePoseEstimator(
@@ -129,37 +123,40 @@ public class SwerveDrive extends SubsystemBase {
 
     angleController.setTolerance(1);
 
-    AutoBuilder.configureHolonomic(
-        this::getPose, // Robot pose supplier
-        this::resetPose, // Method to reset odometry (will be called if your auto has a starting
-        // pose)
-        this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-        this::driveRobotRelative, // Method that will drive the robot given ROBOT RELATIVE
-        // ChassisSpeeds
-        new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in
-            // your Constants class
-            new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-            new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
-            DriveConstants.kMaxModuleSpeed, // Max module speed, in m/s
-            DriveConstants
-                .kDrivebaseRadius, // Drive base radius in meters. Distance from robot center to
-            // furthest module.
-            new ReplanningConfig() // Default path replanning config. See the API for the options
-            // here
-            ),
-        () -> {
-          // Boolean supplier that controls when the path will be mirrored for the red alliance
-          // This will flip the path being followed to the red side of the field.
-          // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+    RobotConfig config = new RobotConfig(Units.lbsToKilograms(135),
+                                         1,
+                                         new ModuleConfig(DriveConstants.kWheelDiameter / 2,
+                                                          DriveConstants.kMaxModuleSpeed,
+                                                          1,
+                                                          DCMotor.getNEO(1),
+                                                          80,
+                                                          1),
 
-          var alliance = DriverStation.getAlliance();
-          if (alliance.isPresent()) {
-            return alliance.get() == DriverStation.Alliance.Red;
-          }
-          return false;
-        },
-        this // Reference to this subsystem to set requirements
-        );
+                                         DriveConstants.kModuleTranslations);
+
+    AutoBuilder.configure(
+      this::getPose,
+      this::resetPose,
+      this::getRobotRelativeSpeeds,
+      (speeds, feedforwards) -> driveRobotRelative(speeds),
+
+      new PPHolonomicDriveController(
+        new PIDConstants(5, 0, 0),
+        new PIDConstants(5, 0, 0)
+      ),
+
+      config,
+
+      () -> {
+        var alliance = DriverStation.getAlliance();
+        if (alliance.isPresent()) {
+          return alliance.get() == DriverStation.Alliance.Red;
+        }
+        return false;
+      },
+
+      this
+    );
   }
 
   public static SwerveDrive getInstance() {
@@ -208,12 +205,6 @@ public class SwerveDrive extends SubsystemBase {
     }
   }
 
-  public void burnModuleFlashes() {
-    for (SwerveModule module : m_modules) {
-      module.burnFlash();
-    }
-  }
-
   public void setModuleStates(boolean isOpenLoop) {
     SwerveDriveKinematics.desaturateWheelSpeeds(
         m_desiredModuleStates, DriveConstants.kMaxModuleSpeed);
@@ -231,7 +222,7 @@ public class SwerveDrive extends SubsystemBase {
 
   public Rotation2d getYaw() {
     if (RobotBase.isReal()) {
-      return Rotation2d.fromDegrees(m_pigeon.getYaw().getValue());
+      return Rotation2d.fromDegrees(m_pigeon.getYaw().getValue().abs(Rotations));
     } else {
       return Rotation2d.fromDegrees(m_simYaw);
     }
@@ -299,7 +290,7 @@ public class SwerveDrive extends SubsystemBase {
     }
   }
 
-  public void runVolts(Measure<Voltage> volts) {
+  public void runVolts(Voltage volts) {
     for (SwerveModule module : m_modules) {
       module.runVolts(volts, 0);
     }
@@ -340,8 +331,6 @@ public class SwerveDrive extends SubsystemBase {
     Logger.recordOutput("Swerve/Module States", getModuleStates());
     Logger.recordOutput("Swerve/Chassis Speeds", m_chassisSpeeds);
     Logger.recordOutput("Swerve/Robot Relative Chassis Speeds", getRobotRelativeSpeeds());
-    Logger.recordOutput(
-        "Swerve/Optimized Desired Module States", m_optimizedSetpoint.moduleStates());
     Logger.recordOutput("Swerve/Desired Module States", m_desiredModuleStates);
 
     for (int i = 0; i < 4; i++) {
