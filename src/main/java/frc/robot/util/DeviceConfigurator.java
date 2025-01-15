@@ -9,6 +9,7 @@ package frc.robot.util;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -39,7 +40,7 @@ public class DeviceConfigurator {
     motor.getEncoder().setPosition(0);
   }
 
-  public static void configureSparkMaxDriveMotor(SparkMax motor) {
+  public static void configureTalonFXDriveMotor(TalonFX motor) {
     SparkMaxConfig config = new SparkMaxConfig();
 
     config.inverted(true)
