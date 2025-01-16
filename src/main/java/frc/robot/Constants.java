@@ -17,10 +17,11 @@ import frc.robot.util.SwerveModuleConstants;
 public final class Constants {
   public static final double kdt = 0.02;
 
+  // Location of the top right point of the feild
   public static final Translation2d kFieldTopRight = new Translation2d(8.195, 16.517);
 
   public final class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
+    public static final int kDriverControllerPort = 0; 
 
     public static final int kThrottleAxis = Axis.kLeftY.value;
     public static final int kStrafeAxis = Axis.kLeftX.value;
