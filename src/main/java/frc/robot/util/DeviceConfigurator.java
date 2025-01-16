@@ -8,8 +8,12 @@
 package frc.robot.util;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -41,23 +45,28 @@ public class DeviceConfigurator {
   }
 
   public static void configureTalonFXDriveMotor(TalonFX motor) {
-    SparkMaxConfig config = new SparkMaxConfig();
+    TalonFXConfiguration config = new TalonFXConfiguration();
 
-    config.inverted(true)
-          .smartCurrentLimit(80)
-          .idleMode(IdleMode.kBrake)
-          .openLoopRampRate(DriveConstants.driverampRate);
+    config.MotorOutput.Inverted                   = InvertedValue.CounterClockwise_Positive;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true; //Can be switched to `StatorCurrentLimit` in need
+    config.CurrentLimits.SupplyCurrentLimit       = 80;
+    config.MotorOutput.NeutralMode                = NeutralModeValue.Brake;
+    config.OpenLoopRamps.TorqueOpenLoopRampPeriod = DriveConstants.driverampRate; //Can be switched to `DutyCycleOpenLoopRampPeriod`
 
-    config.encoder.positionConversionFactor(DriveConstants.kDriveRevToMeters)
-                  .velocityConversionFactor(DriveConstants.kDriveRpmToMetersPerSecond);
+/*   As far as I can tell, the TalonFX drives don't have encoders. TODO
+     config.encoder.positionConversionFactor(DriveConstants.kDriveRevToMeters)
+                  .velocityConversionFactor(DriveConstants.kDriveRpmToMetersPerSecond); */
 
-    config.closedLoop.p(DriveConstants.drivekp)
-                     .i(DriveConstants.driveki)
-                     .d(DriveConstants.drivekd)
-                     .velocityFF(DriveConstants.drivekff);
+    Slot0Configs slot0Configs = new Slot0Configs();
 
-    motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    motor.getEncoder().setPosition(0);
+    slot0Configs.kP = DriveConstants.drivekp;
+    slot0Configs.kI = DriveConstants.driveki;
+    slot0Configs.kD = DriveConstants.drivekd;
+    slot0Configs.kV = DriveConstants.drivekff;
+
+    motor.getConfigurator().apply(config);
+    motor.getConfigurator().apply(slot0Configs);
+    //motor.getEncoder().setPosition(0); See above
   }
 
   public static void configureSparkFlexDriveMotor(SparkFlex motor) {
