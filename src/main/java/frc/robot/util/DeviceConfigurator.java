@@ -25,6 +25,19 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import frc.robot.Constants.DriveConstants;
 
 public class DeviceConfigurator {
+  /* Configure the `CANcoder` and offsets it by `offset` */
+  public static void configureCANcoder(CANcoder encoder, double offset) {
+    CANcoderConfiguration configuration = new CANcoderConfiguration();
+
+    encoder.getConfigurator().apply(configuration);
+
+    configuration.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1; // Make sensor wrap-arround unsigned
+    configuration.MagnetSensor.MagnetOffset                     = offset;
+    configuration.MagnetSensor.SensorDirection                  = SensorDirectionValue.CounterClockwise_Positive; // Set the sensor to mesure positive distance as counter clockwise
+
+    encoder.getConfigurator().apply(configuration); // Apply the configuration
+  }
+
   public static void configureSparkMaxSteerMotor(SparkMax motor) {
     SparkMaxConfig config = new SparkMaxConfig();
 
@@ -42,31 +55,6 @@ public class DeviceConfigurator {
 
     motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     motor.getEncoder().setPosition(0);
-  }
-
-  public static void configureTalonFXDriveMotor(TalonFX motor) {
-    TalonFXConfiguration config = new TalonFXConfiguration();
-
-    config.MotorOutput.Inverted                   = InvertedValue.CounterClockwise_Positive;
-    config.CurrentLimits.SupplyCurrentLimitEnable = true; //Can be switched to `StatorCurrentLimit` in need
-    config.CurrentLimits.SupplyCurrentLimit       = 80;
-    config.MotorOutput.NeutralMode                = NeutralModeValue.Brake;
-    config.OpenLoopRamps.TorqueOpenLoopRampPeriod = DriveConstants.driverampRate; //Can be switched to `DutyCycleOpenLoopRampPeriod`
-
-/*   As far as I can tell, the TalonFX drives don't have encoders. TODO
-     config.encoder.positionConversionFactor(DriveConstants.kDriveRevToMeters)
-                  .velocityConversionFactor(DriveConstants.kDriveRpmToMetersPerSecond); */
-
-    Slot0Configs slot0Configs = new Slot0Configs();
-
-    slot0Configs.kP = DriveConstants.drivekp;
-    slot0Configs.kI = DriveConstants.driveki;
-    slot0Configs.kD = DriveConstants.drivekd;
-    slot0Configs.kV = DriveConstants.drivekff;
-
-    motor.getConfigurator().apply(config);
-    motor.getConfigurator().apply(slot0Configs);
-    //motor.getEncoder().setPosition(0); See above
   }
 
   public static void configureSparkFlexDriveMotor(SparkFlex motor) {
@@ -89,15 +77,25 @@ public class DeviceConfigurator {
     motor.getEncoder().setPosition(0);
   }
 
-  public static void configureCANcoder(CANcoder encoder, double offset) {
-    CANcoderConfiguration configuration = new CANcoderConfiguration();
+  public static void configureTalonFXDriveMotor(TalonFX motor) {
+    TalonFXConfiguration config = new TalonFXConfiguration();
 
-    encoder.getConfigurator().apply(configuration);
+    config.MotorOutput.Inverted                      = InvertedValue.CounterClockwise_Positive;
+    config.CurrentLimits.SupplyCurrentLimitEnable    = true;
+    config.CurrentLimits.SupplyCurrentLimit          = 80;
+    config.MotorOutput.NeutralMode                   = NeutralModeValue.Brake;
+    config.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = DriveConstants.driverampRate;
+    config.Feedback.SensorToMechanismRatio           = DriveConstants.kDriveRevToMeters;
 
-    configuration.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1;
-    configuration.MagnetSensor.MagnetOffset = offset;
-    configuration.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+    Slot0Configs slot0Configs = new Slot0Configs();
 
-    encoder.getConfigurator().apply(configuration);
+    slot0Configs.kP = DriveConstants.drivekp;
+    slot0Configs.kI = DriveConstants.driveki;
+    slot0Configs.kD = DriveConstants.drivekd;
+    slot0Configs.kV = DriveConstants.drivekff;
+
+    motor.getConfigurator().apply(config);
+    motor.getConfigurator().apply(slot0Configs);
+    motor.setPosition(0);
   }
 }
