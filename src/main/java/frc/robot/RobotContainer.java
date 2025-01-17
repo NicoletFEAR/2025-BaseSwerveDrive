@@ -35,7 +35,7 @@ public class RobotContainer {
             OperatorConstants.kThrottleAxis,
             OperatorConstants.kStrafeAxis,
             OperatorConstants.kSteerAxis,
-            OperatorConstants.kSlowSpeed,
+            OperatorConstants.kDefaultSpeed,
             true,
             true));
 

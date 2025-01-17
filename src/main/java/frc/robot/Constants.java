@@ -48,17 +48,7 @@ public final class Constants {
   public final class DriveConstants {
     public static final double kSwerveDeadBand = 0.075;
 
-    public static final RobotConfig kRobotConfig = new RobotConfig(Units.lbsToKilograms(135),
-        1,
-        new ModuleConfig(DriveConstants.kWheelDiameter / 2,
-            DriveConstants.kMaxModuleSpeed,
-            1,
-            DCMotor.getNEO(1),
-            80,
-            1),
-        DriveConstants.kModuleTranslations);
-
-    public static final double kMaxModuleSpeed = Units.feetToMeters(16.25);
+    public static final double kMaxModuleSpeed = Units.feetToMeters(15.5);
     public static final double kMaxRotationsPerSecond = Math.PI * 3.0;
 
     public static final double kTrackWidth = Units.inchesToMeters(20.75); // Distance between centers of right and left
@@ -94,6 +84,16 @@ public final class Constants {
     public static final double kDriveRevToMeters = ((kWheelDiameter * Math.PI) / kDriveGearRatio);
     public static final double kDriveRpmToMetersPerSecond = kDriveRevToMeters / 60.0;
     public static final double kTurnRotationsToDegrees = 360.0 / kTurnGearRatio;
+
+    public static final RobotConfig kRobotConfig = new RobotConfig(Units.lbsToKilograms(135),
+    0.1,
+    new ModuleConfig(DriveConstants.kWheelDiameter / 2,
+        DriveConstants.kMaxModuleSpeed,
+        1,
+        DCMotor.getKrakenX60(1).withReduction(kDriveGearRatio),
+        80,
+        1),
+    DriveConstants.kModuleTranslations);
 
     public static double drivekp = 0.15751;
     public static double driveki = 0.0;
