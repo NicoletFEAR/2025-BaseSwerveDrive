@@ -8,7 +8,6 @@
 package frc.robot.util;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -81,21 +80,18 @@ public class DeviceConfigurator {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.MotorOutput.Inverted                      = InvertedValue.CounterClockwise_Positive;
-    config.CurrentLimits.SupplyCurrentLimitEnable    = true;
-    config.CurrentLimits.SupplyCurrentLimit          = 80;
+    config.CurrentLimits.StatorCurrentLimitEnable    = true;
+    config.CurrentLimits.StatorCurrentLimit          = 80;
     config.MotorOutput.NeutralMode                   = NeutralModeValue.Brake;
     config.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = DriveConstants.driverampRate;
     config.Feedback.SensorToMechanismRatio           = DriveConstants.kDriveRevToMeters;
 
-    Slot0Configs slot0Configs = new Slot0Configs();
-
-    slot0Configs.kP = DriveConstants.drivekp;
-    slot0Configs.kI = DriveConstants.driveki;
-    slot0Configs.kD = DriveConstants.drivekd;
-    slot0Configs.kV = DriveConstants.drivekff;
+    config.Slot0.kP = DriveConstants.drivekp;
+    config.Slot0.kI = DriveConstants.driveki;
+    config.Slot0.kD = DriveConstants.drivekd;
+    config.Slot0.kV = DriveConstants.drivekff;
 
     motor.getConfigurator().apply(config);
-    motor.getConfigurator().apply(slot0Configs);
     motor.setPosition(0);
   }
 }
