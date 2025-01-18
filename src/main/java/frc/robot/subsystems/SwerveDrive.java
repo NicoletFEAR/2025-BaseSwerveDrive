@@ -12,7 +12,6 @@ import static edu.wpi.first.units.Units.Rotations;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
@@ -119,17 +118,9 @@ public class SwerveDrive extends SubsystemBase {
 
     angleController.setTolerance(1);
 
-        RobotConfig config;
-    try{
-      config = RobotConfig.fromGUISettings();
-    } catch (Exception e) {
-      config = DriveConstants.kRobotConfig;
-      e.printStackTrace();
-    }
-
 
     // setpointGenerator = new SwerveSetpointGenerator(
-    //   config, // The robot configuration. This is the same config used for generating trajectories and running path following commands.
+    //   DriveConstants.kRobotConfig, // The robot configuration. This is the same config used for generating trajectories and running path following commands.
     //         DCMotor.getNEO(1).freeSpeedRadPerSec/DriveConstants.kTurnGearRatio // The max rotation velocity of a swerve module in radians per second. This should probably be stored in your Constants file
     //     );
     // previousSetpoint = new SwerveSetpoint(m_chassisSpeeds, m_desiredModuleStates, DriveFeedforwards.zeros(DriveConstants.kRobotConfig.numModules));
@@ -144,7 +135,7 @@ public class SwerveDrive extends SubsystemBase {
             new PIDConstants(5, 0, 0),
             new PIDConstants(5, 0, 0)),
 
-            config,
+            DriveConstants.kRobotConfig,
 
         () -> {
           var alliance = DriverStation.getAlliance();
@@ -264,6 +255,8 @@ public class SwerveDrive extends SubsystemBase {
         m_chassisSpeeds = ChassisSpeeds.discretize(m_chassisSpeeds, Constants.kdt);
 
         // previousSetpoint = setpointGenerator.generateSetpoint(previousSetpoint, new ChassisSpeeds(throttle, strafe, steer), Constants.kdt);
+
+        // System.out.println(previousSetpoint.robotRelativeSpeeds(). vxMetersPerSecond);
 
         // m_chassisSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(previousSetpoint.robotRelativeSpeeds(), getYaw().times(-1));
 
