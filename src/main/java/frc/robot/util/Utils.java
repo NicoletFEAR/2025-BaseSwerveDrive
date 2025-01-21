@@ -10,7 +10,16 @@ package frc.robot.util;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
+/* A collection of common helpers */
 public class Utils {
+  /**
+   * <h3>copyModuleStates</h3>
+   * 
+   * Copy a swerve module's state in place
+   * 
+   * @param copier State to be copied
+   * @param reciever State to receive the copy
+   */
   public static void copyModuleStates(SwerveModuleState[] copier, SwerveModuleState[] reciever) {
     for (int i = 0; i < copier.length; i++) {
       reciever[i] = new SwerveModuleState(copier[i].speedMetersPerSecond, copier[i].angle);

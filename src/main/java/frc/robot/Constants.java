@@ -21,9 +21,10 @@ import frc.robot.util.SwerveModuleConstants;
 public final class Constants {
   public static final double kdt = 0.02;
 
-  // Location of the top right point of the feild
+  /** Location of the top right point of the field */
   public static final Translation2d kFieldTopRight = new Translation2d(8.195, 16.517);
 
+  /** Constants for the driver controls */
   public final class OperatorConstants {
     public static final int kDriverControllerPort = 0;
 
@@ -35,6 +36,7 @@ public final class Constants {
     public static final double kSlowSpeed = 0.25;
   }
 
+  /** Constants for vision */
   public final class VisionConstants {
     public static final double kTargetAmountConstant = 2.0;
     public static final double kSpeedsConstant = 1.0;
@@ -45,6 +47,7 @@ public final class Constants {
     public static final double kOffsetTolerance = 1.0;
   }
 
+  /** Constants for swerve drive */
   public final class DriveConstants {
     public static final double kSwerveDeadBand = 0.075;
 
