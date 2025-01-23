@@ -20,10 +20,10 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import frc.robot.Constants.DriveConstants;
 
 public class DeviceConfigurator {
-  public static void configureSparkMaxSteerMotor(SparkMax motor) {
+  public static void configureSparkMaxSteerMotor(SparkMax motor, double offset) {
     SparkMaxConfig config = new SparkMaxConfig();
 
-    config.inverted(true)
+    config.inverted(false)
           .smartCurrentLimit(40)
           .idleMode(IdleMode.kBrake);
 
@@ -34,6 +34,8 @@ public class DeviceConfigurator {
           .i(DriveConstants.turnki)
           .d(DriveConstants.turnkd)
           .velocityFF(DriveConstants.turnkff);
+
+    config.absoluteEncoder.startPulseUs(offset);
 
     motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     motor.getEncoder().setPosition(0);
