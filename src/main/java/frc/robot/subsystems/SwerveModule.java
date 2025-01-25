@@ -1,137 +1,114 @@
-// Copyright (c) 2023 FRC 6328
-// http://github.com/Mechanical-Advantage
-//
-// Use of this source code is governed by an MIT-style
-// license that can be found in the LICENSE file at
-// the root directory of this project.
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.subsystems;
 
-import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkClosedLoopController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.RobotBase;
-import frc.robot.Constants;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.util.DeviceConfigurator;
-import frc.robot.util.SwerveModuleConstants;
-import frc.robot.util.Utils;
+
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.RelativeEncoder;
+
+import frc.robot.Configs;
 
 public class SwerveModule {
+  private final SparkMax m_drivingSpark;
+  private final SparkMax m_turningSpark;
 
-  SwerveModuleConstants m_constants;
+  private final RelativeEncoder m_drivingEncoder;
+  private final AbsoluteEncoder m_turningEncoder;
 
-  private SparkMax m_steerMotor;
-  private SparkMax m_driveMotor;
-  private AbsoluteEncoder m_steerAbsEncoder;
+  private final SparkClosedLoopController m_drivingClosedLoopController;
+  private final SparkClosedLoopController m_turningClosedLoopController;
 
-  private RelativeEncoder m_steerEncoder;
-  private RelativeEncoder m_driveEncoder;
+  private double m_chassisAngularOffset = 0;
+  private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
-  private SparkClosedLoopController m_steerController;
-  private SparkClosedLoopController m_driveController;
+  /**
+   * Constructs a MAXSwerveModule and configures the driving and turning motor,
+   * encoder, and PID controller. This configuration is specific to the REV
+   * MAXSwerve Module built with NEOs, SPARKS MAX, and a Through Bore
+   * Encoder.
+   */
+  public SwerveModule(int drivingCANId, int turningCANId, double chassisAngularOffset) {
+    m_drivingSpark = new SparkMax(drivingCANId, MotorType.kBrushless);
+    m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);
 
-  private SwerveModulePosition m_modulePosition;
-  private SwerveModuleState m_moduleState;
+    m_drivingEncoder = m_drivingSpark.getEncoder();
+    m_turningEncoder = m_turningSpark.getAbsoluteEncoder();
 
-  private double m_lastSpeed;
-  private double m_lastAngle;
+    m_drivingClosedLoopController = m_drivingSpark.getClosedLoopController();
+    m_turningClosedLoopController = m_turningSpark.getClosedLoopController();
 
-  private Rotation2d m_simAngle = new Rotation2d();
-  private double m_simDist;
-  private double m_simVel;
+    // Apply the respective configurations to the SPARKS. Reset parameters before
+    // applying the configuration to bring the SPARK to a known good state. Persista
+    // the settings to the SPARK to avoid losing them on a power cycle.
+    m_drivingSpark.configure(Configs.MAXSwerveModule.drivingConfig, ResetMode.kResetSafeParameters,
+        PersistMode.kPersistParameters);
+    m_turningSpark.configure(Configs.MAXSwerveModule.turningConfig, ResetMode.kResetSafeParameters,
+        PersistMode.kPersistParameters);
 
-  public SwerveModule(SwerveModuleConstants constants) {
-    m_constants = constants;
-
-    m_steerMotor = new SparkMax(constants.steerId, MotorType.kBrushless);
-    m_driveMotor = new SparkMax(constants.driveId, MotorType.kBrushless);
-
-    m_steerEncoder = m_steerMotor.getEncoder();
-    m_driveEncoder = m_driveMotor.getEncoder();
-
-    m_steerController = m_steerMotor.getClosedLoopController();
-    m_driveController = m_driveMotor.getClosedLoopController();
-
-    m_steerAbsEncoder = m_steerMotor.getAbsoluteEncoder();
-
-    m_modulePosition = new SwerveModulePosition();
-    m_moduleState = new SwerveModuleState();
-
-    DeviceConfigurator.configureSparkMaxSteerMotor(m_steerMotor, m_constants.offset);
-    DeviceConfigurator.configureSparkMaxDriveMotor(m_driveMotor);
+    m_chassisAngularOffset = chassisAngularOffset;
+    m_desiredState.angle = new Rotation2d(m_turningEncoder.getPosition());
+    m_drivingEncoder.setPosition(0);
   }
 
-  public void resetAngleToAbsolute() {
-    m_steerEncoder.setPosition((m_steerAbsEncoder.getPosition() * 360));
+  /**
+   * Returns the current state of the module.
+   *
+   * @return The current state of the module.
+   */
+  public SwerveModuleState getState() {
+    // Apply chassis angular offset to the encoder position to get the position
+    // relative to the chassis.
+    return new SwerveModuleState(m_drivingEncoder.getVelocity(),
+        new Rotation2d(m_turningEncoder.getPosition() - m_chassisAngularOffset));
   }
 
-  public Rotation2d getModuleHeading() {
-    return m_modulePosition.angle;
+  /**
+   * Returns the current position of the module.
+   *
+   * @return The current position of the module.
+   */
+  public SwerveModulePosition getPosition() {
+    // Apply chassis angular offset to the encoder position to get the position
+    // relative to the chassis.
+    return new SwerveModulePosition(
+        m_drivingEncoder.getPosition(),
+        new Rotation2d(m_turningEncoder.getPosition() - m_chassisAngularOffset));
   }
 
-  public double getAbsolutePosition() {
-    return m_steerAbsEncoder.getPosition();
+  /**
+   * Sets the desired state for the module.
+   *
+   * @param desiredState Desired state with speed and angle.
+   */
+  public void setDesiredState(SwerveModuleState desiredState) {
+    // Apply chassis angular offset to the desired state.
+    SwerveModuleState correctedDesiredState = new SwerveModuleState();
+    correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
+    correctedDesiredState.angle = desiredState.angle.plus(Rotation2d.fromRadians(m_chassisAngularOffset));
+
+    // Optimize the reference state to avoid spinning further than 90 degrees.
+    correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
+
+    // Command driving and turning SPARKS towards their respective setpoints.
+    m_drivingClosedLoopController.setReference(correctedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
+    m_turningClosedLoopController.setReference(correctedDesiredState.angle.getRadians(), ControlType.kPosition);
+
+    m_desiredState = desiredState;
   }
 
-  public SwerveModulePosition getModulePosition() {
-    if (RobotBase.isReal()) {
-      m_modulePosition.angle = Rotation2d.fromDegrees(m_steerEncoder.getPosition());
-      m_modulePosition.distanceMeters = m_driveEncoder.getPosition();
-    } else {
-      m_modulePosition.angle = m_simAngle;
-      m_modulePosition.distanceMeters = m_simDist;
-    }
-    return m_modulePosition;
-  }
-
-  public SwerveModuleState getModuleState() {
-    if (RobotBase.isReal()) {
-      m_moduleState.angle = Rotation2d.fromDegrees(m_steerEncoder.getPosition());
-      m_moduleState.speedMetersPerSecond = m_driveEncoder.getVelocity();
-    } else {
-      m_moduleState.angle = m_simAngle;
-      m_moduleState.speedMetersPerSecond = m_simVel;
-    }
-    return m_moduleState;
-  }
-
-  public void runVolts(Voltage volts, double position) {
-    m_steerController.setReference(position, ControlType.kPosition);
-    m_driveMotor.setVoltage(volts);
-  }
-
-  public void setSwerveModuleState(SwerveModuleState moduleState, boolean isOpenLoop) {
-
-    moduleState = Utils.optimize(moduleState, getModuleHeading());
-
-    moduleState.speedMetersPerSecond *= moduleState.angle.minus(getModuleHeading()).getCos();
-
-    if (moduleState.angle.getDegrees() != m_lastAngle) {
-      m_steerController.setReference(moduleState.angle.getDegrees(), ControlType.kPosition);
-      m_lastAngle = moduleState.angle.getDegrees();
-    }
-
-    if (moduleState.speedMetersPerSecond != m_lastSpeed) {
-      if (isOpenLoop) {
-        m_driveMotor.set(moduleState.speedMetersPerSecond / DriveConstants.kMaxModuleSpeed);
-      } else {
-        m_driveController.setReference(moduleState.speedMetersPerSecond, ControlType.kVelocity);
-      }
-      m_lastSpeed = moduleState.speedMetersPerSecond;
-    }
-
-    if (RobotBase.isSimulation()) {
-      m_simAngle = moduleState.angle;
-      m_simVel = moduleState.speedMetersPerSecond;
-      m_simDist += moduleState.speedMetersPerSecond / (1 / Constants.kdt);
-    }
+  /** Zeroes all the SwerveModule encoders. */
+  public void resetEncoders() {
+    m_drivingEncoder.setPosition(0);
   }
 }

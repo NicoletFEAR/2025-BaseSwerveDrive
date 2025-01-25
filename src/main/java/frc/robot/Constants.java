@@ -80,7 +80,7 @@ public final class Constants {
 
     public static final double kDriveRevToMeters = ((kWheelDiameter * Math.PI) / kDriveGearRatio);
     public static final double kDriveRpmToMetersPerSecond = kDriveRevToMeters / 60.0;
-    public static final double kTurnRotationsToDegrees = 360.0 / kTurnGearRatio;
+    public static final double kTurnRotationsConversionFactor = kTurnGearRatio;
 
     public static double drivekp = 0.15751;
     public static double driveki = 0.0;
