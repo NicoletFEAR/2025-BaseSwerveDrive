@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.measure.Voltage;
 
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
@@ -85,7 +86,10 @@ public class SwerveModule {
         m_drivingEncoder.getPosition(),
         new Rotation2d(m_turningEncoder.getPosition() - m_chassisAngularOffset));
   }
-
+public void runVolts(Voltage volts, double position) {
+    m_turningClosedLoopController.setReference(position, ControlType.kPosition);
+    m_drivingSpark.setVoltage(volts);
+  }
   /**
    * Sets the desired state for the module.
    *

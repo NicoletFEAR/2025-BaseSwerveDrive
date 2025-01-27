@@ -27,7 +27,7 @@ public class TeleopSwerve extends Command {
   private double m_strafe;
   private double m_steer;
 
-  private boolean m_isOpenLoop;
+  //private boolean m_isOpenLoop; <p> uncomment if its needed <p>
   private boolean m_isFieldRelative;
 
   private double m_percentModifier;
@@ -49,7 +49,7 @@ public class TeleopSwerve extends Command {
     m_steerAxis = steerAxis;
 
     m_percentModifier = percentModifier;
-    m_isOpenLoop = isOpenLoop;
+    //m_isOpenLoop = isOpenLoop; 
 
     m_isFieldRelative = isFieldRelative;
 
@@ -77,7 +77,7 @@ public class TeleopSwerve extends Command {
     m_strafe *= m_percentModifier;
     m_steer *= m_percentModifier;
 
-    m_drivebase.drive(m_throttle, m_strafe, m_steer, m_isOpenLoop, m_isFieldRelative);
+      m_drivebase.drive(m_throttle, m_strafe, m_steer, m_isFieldRelative);
   }
 
   // Called once the command ends or is interrupted.

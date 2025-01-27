@@ -41,7 +41,7 @@ public class TurnToAngle extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    m_drivebase.drive(0, 0, 0, true, true);
+    m_drivebase.drive(0, 0, 0,  true);
 
     angleController.setIZone(3);
   }
@@ -54,7 +54,7 @@ public class TurnToAngle extends Command {
             Utils.getAdjustedYawDegrees(m_drivebase.getYaw().getDegrees(), m_targetAngle), 180);
 
     speeds = MathUtil.clamp(speeds, -1, 1);
-    m_drivebase.drive(0, 0, speeds, true, true);
+    m_drivebase.drive(0, 0, speeds,  true);
   }
 
   // Called once the command ends or is interrupted.
@@ -67,7 +67,7 @@ public class TurnToAngle extends Command {
     if (Math.abs(
             Utils.getAdjustedYawDegrees(m_drivebase.getYaw().getDegrees(), m_targetAngle) - 180)
         < deadBand) {
-      m_drivebase.drive(0, 0, 0, true, true);
+      m_drivebase.drive(0, 0, 0,  true);
       return true;
     } else {
       return false;

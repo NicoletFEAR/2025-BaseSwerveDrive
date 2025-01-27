@@ -56,7 +56,7 @@ public class WheelCharacterization extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    m_drivebase.drive(0, 0, omegaLimiter.calculate(kTurnSpeed), true, true);
+    m_drivebase.drive(0, 0, omegaLimiter.calculate(kTurnSpeed),  true);
 
     accumGyroYawRads += MathUtil.angleModulus(m_drivebase.getYaw().getRadians() - lastGyroYawRads);
     lastGyroYawRads = m_drivebase.getYaw().getRadians();
@@ -82,7 +82,7 @@ public class WheelCharacterization extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    m_drivebase.drive(0, 0, 0, true, true);
+    m_drivebase.drive(0, 0, 0,  true);
 
     if (accumGyroYawRads <= Math.PI * 2.0) {
       System.out.println("Not enough data for characterization");
