@@ -30,6 +30,8 @@ public final class Configs {
                     .velocityFF(drivingVelocityFeedForward)
                     .outputRange(-1, 1);
 
+                    drivingConfig.openLoopRampRate(.25);
+
             turningConfig
                     .idleMode(IdleMode.kBrake)
                     .smartCurrentLimit(20);

@@ -67,12 +67,14 @@ public class RobotContainer {
     // m_driverController.b().onTrue(new TurnToAngle(100));
     // m_driverController.x().onTrue(new TurnToAngle(200));
 
-    m_driverController.circle().onTrue(new WheelCharacterization(m_driveBase));
+    // m_driverController.circle().onTrue(new WheelCharacterization(m_driveBase));
 
-    m_driverController
-        .create()
-        .onTrue(
-            m_driveBase.characterizeDrivebase(() -> m_driverController.options().getAsBoolean()));
+    // m_driverController
+    //     .create()
+    //     .onTrue(
+    //         m_driveBase.characterizeDrivebase(() -> m_driverController.options().getAsBoolean()));
+
+    m_driverController.create().onTrue(Commands.runOnce(() -> m_driveBase.zeroYaw(), m_driveBase));
   }
 
   public Command getAutonomousCommand() {

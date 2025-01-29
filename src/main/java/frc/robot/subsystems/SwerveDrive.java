@@ -28,6 +28,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
@@ -76,6 +77,8 @@ public class SwerveDrive extends SubsystemBase {
   public SwerveDrive() {
     // Usage reporting for MAXSwerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
+    SmartDashboard.putNumber("yaw", 0);
+    m_gyro.setYaw(0);
   }
 
   @Override
@@ -89,6 +92,8 @@ public class SwerveDrive extends SubsystemBase {
             m_backLeft.getPosition(),
             m_backRight.getPosition()
         });
+
+        SmartDashboard.putNumber("yaw", getYaw().getDegrees());
   }
   public static SwerveDrive getInstance() {
     if (m_instance == null) {
@@ -98,6 +103,10 @@ public class SwerveDrive extends SubsystemBase {
     return m_instance;
   }
 
+  public void zeroYaw() {
+    m_gyro.setYaw(0);
+  }
+
   /**
    * Returns the currently-estimated pose of the robot.
    *
@@ -105,6 +114,10 @@ public class SwerveDrive extends SubsystemBase {
    */
   public Pose2d getPose() {
     return m_odometry.getPoseMeters();
+  }
+
+  public Rotation2d getYaw(){
+    return m_gyro.getRotation2d();
   }
 public SwerveModulePosition[] getModulePositions() {return new SwerveModulePosition[]{m_frontLeft.getPosition(), m_frontRight.getPosition(), m_backLeft.getPosition(), m_backRight.getPosition() };}
   /**
@@ -145,12 +158,12 @@ public void runVolts(Voltage voltage) {m_frontLeft.runVolts(voltage, 0);
       // Convert the commanded speeds into the correct units for the drivetrain
       double xSpeedDelivered = xSpeed * DriveConstants.kMaxModuleSpeed;
       double ySpeedDelivered = ySpeed * DriveConstants.kMaxModuleSpeed;
-      double rotDelivered = rot * DriveConstants.kMaxRotationsPerSecond;
+      double rotDelivered = rot * -1 * DriveConstants.kMaxRotationsPerSecond;
 
       var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
           fieldRelative
               ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered,
-                  Rotation2d.fromDegrees(m_gyro.getYaw().getValue().abs(Degrees)))
+                  getYaw())
               : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
       SwerveDriveKinematics.desaturateWheelSpeeds(
           swerveModuleStates, DriveConstants.kMaxModuleSpeed);
@@ -202,7 +215,6 @@ public enum DriveMode {TELEOP, XWHEELS}
     m_frontRight.resetEncoders();
     m_backRight.resetEncoders();
   }
-public Rotation2d getYaw() {return Rotation2d.fromDegrees(m_gyro.getYaw().getValue().abs(Degrees));}
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
     m_gyro.reset();
