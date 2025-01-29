@@ -175,6 +175,10 @@ public class SwerveDrive extends SubsystemBase {
     return m_modulePositions;
   }
 
+  public void zeroYaw() {
+    m_pigeon.setYaw(0);
+  }
+
   public SwerveModuleState[] getModuleStates() {
     for (int i = 0; i < m_modules.length; i++) {
       m_desiredModuleStates[i] = m_modules[i].getModuleState();
@@ -222,7 +226,7 @@ public class SwerveDrive extends SubsystemBase {
 
   public Rotation2d getYaw() {
     if (RobotBase.isReal()) {
-      return Rotation2d.fromDegrees(m_pigeon.getYaw().getValue().abs(Rotations));
+      return Rotation2d.fromRotations(m_pigeon.getYaw().getValue().abs(Rotations)).times(-1);
     } else {
       return Rotation2d.fromDegrees(m_simYaw);
     }
