@@ -8,12 +8,9 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -35,12 +32,14 @@ public class SwerveModule {
   SwerveModuleConstants m_constants;
 
   private SparkMax m_steerMotor;
-  private TalonFX m_driveMotor;
+  private SparkMax m_driveMotor;
   private CANcoder m_steerAbsEncoder;
 
   private RelativeEncoder m_steerEncoder;
+  private RelativeEncoder m_driveEncoder;
 
   private SparkClosedLoopController m_steerController;
+  private SparkClosedLoopController m_driveController;
 
   private SwerveModulePosition m_modulePosition;
   private SwerveModuleState m_moduleState;
@@ -56,9 +55,10 @@ public class SwerveModule {
     m_constants = constants;
 
     m_steerMotor = new SparkMax(constants.steerId, MotorType.kBrushless);
-    m_driveMotor = new TalonFX(constants.driveId);
+    m_driveMotor = new SparkMax(constants.driveId, MotorType.kBrushless);
 
     m_steerEncoder = m_steerMotor.getEncoder();
+    m_driveEncoder = m_driveMotor.getEncoder();
 
     m_steerController = m_steerMotor.getClosedLoopController();
 
@@ -68,7 +68,7 @@ public class SwerveModule {
     m_moduleState = new SwerveModuleState();
 
     DeviceConfigurator.configureSparkMaxSteerMotor(m_steerMotor);
-    DeviceConfigurator.configureTalonFXDriveMotor(m_driveMotor);
+    DeviceConfigurator.configureSparkMaxDriveMotor(m_driveMotor);
     DeviceConfigurator.configureCANcoder(m_steerAbsEncoder, m_constants.offset);
   }
 
@@ -87,7 +87,7 @@ public class SwerveModule {
   public SwerveModulePosition getModulePosition() {
     if (RobotBase.isReal()) {
       m_modulePosition.angle = Rotation2d.fromDegrees(m_steerEncoder.getPosition());
-      m_modulePosition.distanceMeters = m_driveMotor.getPosition().getValue().abs(Rotations);
+      m_modulePosition.distanceMeters = m_driveEncoder.getPosition();
     } else {
       m_modulePosition.angle = m_simAngle;
       m_modulePosition.distanceMeters = m_simDist;
@@ -98,7 +98,7 @@ public class SwerveModule {
   public SwerveModuleState getModuleState() {
     if (RobotBase.isReal()) {
       m_moduleState.angle = Rotation2d.fromDegrees(m_steerEncoder.getPosition());
-      m_moduleState.speedMetersPerSecond = m_driveMotor.getVelocity().getValue().abs(RotationsPerSecond);
+      m_moduleState.speedMetersPerSecond = m_driveEncoder.getVelocity();
     } else {
       m_moduleState.angle = m_simAngle;
       m_moduleState.speedMetersPerSecond = m_simVel;
@@ -126,7 +126,7 @@ public class SwerveModule {
       if (isOpenLoop) {
         m_driveMotor.set(moduleState.speedMetersPerSecond / DriveConstants.kMaxModuleSpeed);
       } else {
-        m_driveMotor.setControl(new VelocityVoltage(moduleState.speedMetersPerSecond));
+        m_driveController.setReference(moduleState.speedMetersPerSecond, ControlType.kVelocity);
       }
       m_lastSpeed = moduleState.speedMetersPerSecond;
     }
@@ -138,3 +138,4 @@ public class SwerveModule {
     }
   }
 }
+

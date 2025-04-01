@@ -59,8 +59,8 @@ public class DeviceConfigurator {
   }
 
   /** Configure a SparkFlex controlled drive motor */
-  public static void configureSparkFlexDriveMotor(SparkFlex motor) {
-    SparkFlexConfig config = new SparkFlexConfig();
+  public static void configureSparkMaxDriveMotor(SparkMax motor) {
+    SparkMaxConfig config = new SparkMaxConfig();
 
     config.inverted(true)
           .smartCurrentLimit(80) // Limit current to 80 Amps
