@@ -226,7 +226,7 @@ public class SwerveDrive extends SubsystemBase {
 
   public Rotation2d getYaw() {
     if (RobotBase.isReal()) {
-      return Rotation2d.fromRotations(m_pigeon.getYaw().getValue().abs(Rotations)).times(-1);
+      return m_pigeon.getRotation2d();
     } else {
       return Rotation2d.fromDegrees(m_simYaw);
     }
