@@ -65,13 +65,13 @@ public class TeleopSwerve extends Command {
   public void execute() {
     m_throttle =
         MathUtil.applyDeadband(
-            -m_driverController.getRawAxis(m_throttleAxis), DriveConstants.kSwerveDeadBand);
+            m_driverController.getRawAxis(m_throttleAxis), DriveConstants.kSwerveDeadBand);
     m_strafe =
         MathUtil.applyDeadband(
-            -m_driverController.getRawAxis(m_strafeAxis), DriveConstants.kSwerveDeadBand);
+            m_driverController.getRawAxis(m_strafeAxis), DriveConstants.kSwerveDeadBand);
     m_steer =
         MathUtil.applyDeadband(
-            -m_driverController.getRawAxis(m_steerAxis), DriveConstants.kSwerveDeadBand);
+            m_driverController.getRawAxis(m_steerAxis), DriveConstants.kSwerveDeadBand);
 
     m_throttle *= m_percentModifier;
     m_strafe *= m_percentModifier;

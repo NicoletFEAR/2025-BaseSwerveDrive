@@ -1,7 +1,10 @@
 {
   "NTProvider": {
     "types": {
-      "/FMSInfo": "FMSInfo"
+      "/AdvantageKit/RealOutputs/Alerts": "Alerts",
+      "/FMSInfo": "FMSInfo",
+      "/Shuffleboard/Main/Field": "Field2d",
+      "/SmartDashboard/Alerts": "Alerts"
     }
   },
   "NetworkTables Info": {

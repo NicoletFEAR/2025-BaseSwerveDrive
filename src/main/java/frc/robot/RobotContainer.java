@@ -54,7 +54,7 @@ public class RobotContainer {
                 OperatorConstants.kSteerAxis,
                 OperatorConstants.kSlowSpeed,
                 true,
-                true));
+                false));
 
     m_driverController
         .cross()
