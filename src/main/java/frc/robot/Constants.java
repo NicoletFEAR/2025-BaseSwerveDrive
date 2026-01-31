@@ -98,7 +98,7 @@ public final class Constants {
     public static final int kFrontLeftDriveMotor = 2;
     public static final int kFrontLeftSteerMotor = 1;
     public static final int kFrontLeftSteerEncoder = 3;
-    public static final double kFrontLeftOffset = -0.40625;
+    public static final double kFrontLeftOffset = -0.40283203125;
     public static final SwerveModuleConstants kFrontLeft =
         new SwerveModuleConstants(
             kFrontLeftDriveMotor, kFrontLeftSteerMotor, kFrontLeftSteerEncoder, kFrontLeftOffset);
@@ -106,7 +106,7 @@ public final class Constants {
     public static final int kFrontRightDriveMotor = 5;
     public static final int kFrontRightSteerMotor = 4;
     public static final int kFrontRightSteerEncoder = 6;
-    public static final double kFrontRightSteerOffset = -0.599853515625 + 0.5;
+    public static final double kFrontRightSteerOffset = -0.597412109375;
     public static final SwerveModuleConstants kFrontRight =
         new SwerveModuleConstants(
             kFrontRightDriveMotor,
@@ -117,7 +117,7 @@ public final class Constants {
     public static final int kBackLeftDriveMotor = 10;
     public static final int kBackLeftSteerMotor = 11;
     public static final int kBackLeftSteerEncoder = 12;
-    public static final double kBackLeftSteerOffset = -0.111083984375;
+    public static final double kBackLeftSteerOffset = -0.108642578125;
     public static final SwerveModuleConstants kBackLeft =
         new SwerveModuleConstants(
             kBackLeftDriveMotor, kBackLeftSteerMotor, kBackLeftSteerEncoder, kBackLeftSteerOffset);
@@ -125,7 +125,7 @@ public final class Constants {
     public static final int kBackRightDriveMotor = 8;
     public static final int kBackRightSteerMotor = 7;
     public static final int kBackRightSteerEncoder = 9;
-    public static final double kBackRightSteerOffset = -0.811279296875 + 0.5;
+    public static final double kBackRightSteerOffset = -0.811279296875;
     public static final SwerveModuleConstants kBackRight =
         new SwerveModuleConstants(
             kBackRightDriveMotor,
